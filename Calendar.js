@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase'; 
-import { collection, getDocs, doc, setDoc, query, where, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, query, where, deleteDoc, updateDoc } from 'firebase/firestore';
 import './Calendar.css';
 
 function Calendar() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [events, setEvents] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editEventId, setEditEventId] = useState(null);  // Track which event is being edited
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -35,15 +36,21 @@ function Calendar() {
     setNewEvent({ ...newEvent, [e.target.name]: e.target.value });
   };
 
-  const addEvent = async (e) => {
+  const addOrUpdateEvent = async (e) => {
     e.preventDefault();
     try {
-      const eventRef = doc(collection(db, 'CalendarEvents'));
-      await setDoc(eventRef, {
-        ...newEvent,
-        id: eventRef.id,
-      });
-      setEvents([...events, { ...newEvent, id: eventRef.id }]);
+      if (editEventId) {  // If we're editing an event
+        const eventRef = doc(db, 'CalendarEvents', editEventId);
+        await updateDoc(eventRef, newEvent);
+        setEvents(events.map(event => event.id === editEventId ? { ...event, ...newEvent } : event));
+      } else {  // If we're adding a new event
+        const eventRef = doc(collection(db, 'CalendarEvents'));
+        await setDoc(eventRef, {
+          ...newEvent,
+          id: eventRef.id,
+        });
+        setEvents([...events, { ...newEvent, id: eventRef.id }]);
+      }
       setNewEvent({
         title: '',
         description: '',
@@ -51,9 +58,16 @@ function Calendar() {
         endDate: ''
       });
       setShowForm(false);
+      setEditEventId(null);  // Reset editing state after submitting
     } catch (error) {
-      console.error('Error adding event:', error);
+      console.error('Error adding or updating event:', error);
     }
+  };
+
+  const editEvent = (event) => {
+    setNewEvent(event);
+    setEditEventId(event.id);  // Set the event ID to identify which event to edit
+    setShowForm(true);
   };
 
   const clearEventsForDay = async () => {
@@ -94,6 +108,7 @@ function Calendar() {
               <h4>{event.title}</h4>
               <p>{event.description}</p>
               <p>{new Date(event.startDate).toLocaleTimeString()} - {new Date(event.endDate).toLocaleTimeString()}</p>
+              <button onClick={() => editEvent(event)}>Edit Event</button>
             </div>
           ))}
         </div>
@@ -117,7 +132,7 @@ function Calendar() {
       </button>
 
       {showForm && (
-        <form onSubmit={addEvent}>
+        <form onSubmit={addOrUpdateEvent}>
           <input
             type="text"
             name="title"
@@ -148,7 +163,7 @@ function Calendar() {
             onChange={handleChange}
             required
           />
-          <button type="submit">Add Event</button>
+          <button type="submit">{editEventId ? 'Update Event' : 'Add Event'}</button>
         </form>
       )}
     </div>
