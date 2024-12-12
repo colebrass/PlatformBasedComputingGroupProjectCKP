@@ -1,0 +1,67 @@
+/* styles.css */
+
+.calendar {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.days-container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.day {
+  background: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.day.selected {
+  background: #cfe3ff;
+}
+
+.day.event-day {
+  border: 2px solid #007bff;
+}
+
+.event {
+  margin-top: 10px;
+  background: #e0e0e0;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+form input,
+form button {
+  margin: 5px 0;
+  padding: 10px;
+  font-size: 16px;
+}
+
+button {
+  cursor: pointer;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
